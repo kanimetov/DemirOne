@@ -37,6 +37,9 @@ public class UserService : IUserService
         };
 
         context.Users.Add(user);
+        context.Balances.Add(new Balance{
+            UserId = user.Id
+        });
         await context.SaveChangesAsync();
         return user;
     }
@@ -56,7 +59,7 @@ public class UserService : IUserService
 
 public interface IUserService
 {
-    Task<User?> GetUserByIdAsync(string username);
+    Task<User?> GetUserByIdAsync(string id);
     Task<User?> GetUserByUsernameAsync(string username);
     Task<User> CreateUserAsync(string username, string passwordHash);
     Task<bool> UpdateUserAsync(User user);

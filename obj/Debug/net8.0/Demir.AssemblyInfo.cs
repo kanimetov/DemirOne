@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Demir")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+057f7518420ac9850365fb11579eba79f07a5791")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+62ae9b01cc5b680f10b2f06dcadef9c16deab536")]
 [assembly: System.Reflection.AssemblyProductAttribute("Demir")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Demir")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

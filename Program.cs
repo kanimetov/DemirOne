@@ -12,6 +12,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite("Data Source=Demir.db"));
 
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IBalanceService, BalanceService>();
 
 builder.Services.AddControllers();
 
