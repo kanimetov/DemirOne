@@ -1,0 +1,6 @@
+@Demir_HostAddress = http://localhost:5100
+
+GET {{Demir_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
