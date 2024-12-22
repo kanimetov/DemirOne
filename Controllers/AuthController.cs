@@ -48,14 +48,30 @@ public class AuthController : ControllerBase
     {
         User? user = await userService.GetUserByUsernameAsync(model.Username);
 
-        if (user == null) {
+        if (user == null) 
             return NotFound(new {message = "User not registered."});
-        }
+        
+        if (user.LockoutEnd > DateTime.UtcNow)
+            return BadRequest($"Account is locked until {user.LockoutEnd} UTC.");
 
         var passwordHelper = new PasswordHelper();
         if(!passwordHelper.VerifyPassword(user.PasswordHash, model.Password)) {
+            user.FailedLoginAttempts++;
+            if (user.FailedLoginAttempts >= 5)
+            {
+                user.LockoutEnd = DateTime.UtcNow.AddMinutes(10); // Lock account for 10 minutes
+                await userService.UpdateUserAsync(user);
+                return BadRequest("Account locked due to multiple failed login attempts.");
+            }
+
+            await userService.UpdateUserAsync(user);
             return Unauthorized(new { message = "Invalid username or password." });
         }
+
+        user.FailedLoginAttempts = 0;
+        user.LockoutEnd = null;
+        await userService.UpdateUserAsync(user);
+
 
         TokenResult result = GenerateJwtToken(configuration, user.Username, user.Id);
 
@@ -71,8 +87,8 @@ public class AuthController : ControllerBase
 
         var claims = new[]
         {
-            new Claim(JwtRegisteredClaimNames.Sub, username),
-            new Claim(JwtRegisteredClaimNames.Jti, userId)
+            new Claim(ClaimTypes.Name, username),
+            new Claim(ClaimTypes.NameIdentifier, userId)
         };
 
         var token = new JwtSecurityToken(

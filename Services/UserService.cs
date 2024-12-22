@@ -15,6 +15,10 @@ public class UserService : IUserService
     }
 
 
+    public async Task<User?> GetUserByIdAsync(string id)
+    {
+        return await context.Users.FindAsync(id);
+    }
     public async Task<User?> GetUserByUsernameAsync(string username)
     {
         return await context.Users.FirstOrDefaultAsync(u => u.Username == username);
@@ -37,11 +41,23 @@ public class UserService : IUserService
         return user;
     }
 
+    public async Task<bool> UpdateUserAsync(User user)
+    {
+        var existingUser = await GetUserByIdAsync(user.Id);
+        if (existingUser == null) return false;
+
+        context.Users.Update(user);
+        await context.SaveChangesAsync();
+        return true;
+    }
+
 }
 
 
 public interface IUserService
 {
+    Task<User?> GetUserByIdAsync(string username);
     Task<User?> GetUserByUsernameAsync(string username);
     Task<User> CreateUserAsync(string username, string passwordHash);
+    Task<bool> UpdateUserAsync(User user);
 }
