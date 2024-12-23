@@ -1,6 +1,7 @@
 using Demir.Helpers;
 using Demir.Models;
 using Demir.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -15,11 +16,13 @@ public class AuthController : ControllerBase
 {
     private readonly IConfiguration configuration;
     private readonly IUserService userService;
+    private readonly ITokenService tokenService;
 
-    public AuthController(IConfiguration configuration, IUserService userService)
+    public AuthController(IConfiguration configuration, IUserService userService, ITokenService tokenService)
     {
         this.configuration = configuration;
         this.userService = userService;
+        this.tokenService = tokenService;
     }
 
     [HttpPost("register")]
@@ -76,6 +79,19 @@ public class AuthController : ControllerBase
         TokenResult result = GenerateJwtToken(configuration, user.Username, user.Id);
 
         return Ok(result);
+    }
+
+    [Authorize]
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout()
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var token = Request.Headers["Authorization"].ToString();
+        var userAgent = Request.Headers["User-Agen"].ToString();
+        await tokenService.CreateTokenAsync(userId, token, userAgent);
+
+
+        return Ok(new { message = "Logged out successfully." });
     }
 
 

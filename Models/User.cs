@@ -7,4 +7,7 @@ public class User
     public string PasswordHash { get; set; }
     public int FailedLoginAttempts { get; set; }
     public DateTime? LockoutEnd { get; set; }
+
+    public Balance Balance { get; set; }
+    public Token[] Tokens { get; set; }
 }

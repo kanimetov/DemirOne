@@ -42,7 +42,7 @@ public class BalanceService : IBalanceService {
 
         double difference = balance.Amount - (withdraw ?? DEFAULTWITHDRAWAMOUNT);
         if(difference > 0) {
-            balance.Amount = difference;
+            balance.Amount = Math.Round(difference, 1);
             context.Balances.Update(balance);
             await context.SaveChangesAsync();
         }else{
