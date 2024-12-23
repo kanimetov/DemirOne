@@ -74,11 +74,11 @@ public class BalanceService : IBalanceService {
         }
     }
 
-    private BalanceDto? Mapper(Balance? user) {
-        return user != null ? new BalanceDto {
-            Id = user!.Id,
-            Amount = user.Amount,
-            UserId = user.UserId,
+    private BalanceDto? Mapper(Balance? balance) {
+        return balance != null ? new BalanceDto {
+            Id = balance!.Id,
+            Amount = balance.Amount,
+            UserId = balance.UserId,
         } : null;
     }
 }

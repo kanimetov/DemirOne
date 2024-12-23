@@ -15,19 +15,14 @@ public class TokenService : ITokenService
 
     public async Task<TokenDto> CreateTokenAsync(string userId, string token, string userAgent)
     {
-        var existedToken = await GetTokenByUserAgentAsync(userAgent);
+        var existedToken = await context.Tokens.FirstOrDefaultAsync(b => b.UserAgent == userAgent);
         token = NormolizeToken(token);
 
         if(existedToken != null) {
             existedToken.Value = token;
-            context.Tokens.Update(new Token{
-                Id = existedToken.Id,
-                UserAgent = existedToken.UserAgent,
-                UserId = existedToken.UserId,
-                Value = existedToken.Value
-            });
+            context.Tokens.Update(existedToken);
             await context.SaveChangesAsync();
-            return existedToken;
+            return Mapper(existedToken);
         }
         var newToken = new Token {
             UserId = userId,
