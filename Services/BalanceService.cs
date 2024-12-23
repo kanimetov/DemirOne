@@ -38,20 +38,22 @@ public class BalanceService : IBalanceService {
     {
         using var transaction = await context.Database.BeginTransactionAsync();
         try {
-            var balance = await GetBalanceByUserIdAsync(user.Id);
+            var balance = await context.Balances.FirstOrDefaultAsync(b => b.UserId == user.Id);
             if (balance == null){
                 throw new InvalidOperationException("Balance not found.");
             }
             var withdrawAmount = withdraw ?? DEFAULTWITHDRAWAMOUNT;
 
             double difference = balance.Amount - withdrawAmount;
-            var updatedProduct = new Balance {
-                Id = balance.Id,
-                UserId = balance.UserId
-            };
+            
 
             if(difference > 0) {
-                updatedProduct.Amount = Math.Round(difference, 1);
+                var updatedProduct = new Balance {
+                    Id = balance.Id,
+                    UserId = balance.UserId,
+                    Amount = Math.Round(difference, 1)
+                };
+                
                 context.Transactions.Add(new Transaction {
                     UserId = user.Id,
                     Withdraw = withdrawAmount,
@@ -63,7 +65,7 @@ public class BalanceService : IBalanceService {
                 throw new InvalidOperationException("There are not enough funds.");
             }
 
-            return balance;
+            return Mapper(balance);
         }
         catch(Exception){
             await transaction.RollbackAsync();
