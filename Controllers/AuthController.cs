@@ -18,6 +18,8 @@ public class AuthController : ControllerBase
     private readonly IConfiguration configuration;
     private readonly IUserService userService;
     private readonly ITokenService tokenService;
+    private readonly int MaxLoginAteempts = 5;
+    private readonly int LockoutMinutes = 10;
 
     public AuthController(IConfiguration configuration, IUserService userService, ITokenService tokenService)
     {
@@ -61,9 +63,9 @@ public class AuthController : ControllerBase
         var passwordHelper = new PasswordHelper();
         if(!passwordHelper.VerifyPassword(user.PasswordHash, model.Password)) {
             user.FailedLoginAttempts++;
-            if (user.FailedLoginAttempts >= 5)
+            if (user.FailedLoginAttempts >= MaxLoginAteempts)
             {
-                user.LockoutEnd = DateTime.UtcNow.AddMinutes(10); // Lock account for 10 minutes
+                user.LockoutEnd = DateTime.UtcNow.AddMinutes(LockoutMinutes); // Lock account for 10 minutes
                 await userService.UpdateUserAsync(user);
                 return BadRequest(Messages.AccountLocked);
             }
