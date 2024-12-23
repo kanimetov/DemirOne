@@ -1,3 +1,4 @@
+using Demir.Constants;
 using Demir.Dtos;
 using Demir.Helpers;
 using Demir.Services;
@@ -30,7 +31,7 @@ public class AuthController : ControllerBase
     {
         UserDto? user = await userService.GetUserByUsernameAsync(model.Username);
         if (user != null)
-            return Conflict(new {message= "A user with this email already exists."});
+            return Conflict(new {message= Messages.UserAlreadyCreated});
         
         var passwordHelper = new PasswordHelper();
         string passwordHash = passwordHelper.HashPassword(model.Password);
@@ -52,7 +53,7 @@ public class AuthController : ControllerBase
         UserDto? user = await userService.GetUserByUsernameAsync(model.Username);
 
         if (user == null) 
-            return NotFound(new {message = "User not registered."});
+            return NotFound(new {message = Messages.UserNotRegistered});
         
         if (user.LockoutEnd > DateTime.UtcNow)
             return BadRequest($"Account is locked until {user.LockoutEnd} UTC.");
@@ -64,11 +65,11 @@ public class AuthController : ControllerBase
             {
                 user.LockoutEnd = DateTime.UtcNow.AddMinutes(10); // Lock account for 10 minutes
                 await userService.UpdateUserAsync(user);
-                return BadRequest("Account locked due to multiple failed login attempts.");
+                return BadRequest(Messages.AccountLocked);
             }
 
             await userService.UpdateUserAsync(user);
-            return Unauthorized(new { message = "Invalid username or password." });
+            return Unauthorized(new { message = Messages.InvalidUsernameOrPassword });
         }
 
         user.FailedLoginAttempts = 0;
@@ -91,7 +92,7 @@ public class AuthController : ControllerBase
         await tokenService.CreateTokenAsync(userId, token, userAgent);
 
 
-        return Ok(new { message = "Logged out successfully." });
+        return Ok(new { message = Messages.Logout });
     }
 
 

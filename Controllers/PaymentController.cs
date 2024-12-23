@@ -3,6 +3,7 @@ using Demir.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Demir.Dtos;
+using Demir.Constants;
 
 
 namespace Demir.Controllers;
@@ -28,13 +29,13 @@ public class BalanceController : ControllerBase{
 
         if (username == null || userId == null)
         {
-            return Unauthorized(new { message = "User is not authorized." });
+            return BadRequest(new { message = Messages.InvalidUserInfo });
         }
 
         UserDto? user = await userService.GetUserByIdAsync(userId);
 
         if(user == null)
-            return BadRequest($"Please contact our support team");
+            return BadRequest(Messages.ContactSupport);
 
         
         try {
@@ -43,6 +44,7 @@ public class BalanceController : ControllerBase{
             return Ok(new {
                 username,
                 balance = balance.Amount,
+                status = Messages.PaymentSuccess
             });
         }
         catch(InvalidOperationException ex){

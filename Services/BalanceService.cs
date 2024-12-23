@@ -1,3 +1,4 @@
+using Demir.Constants;
 using Demir.Data.Models;
 using Demir.Dtos;
 using Microsoft.EntityFrameworkCore;
@@ -62,7 +63,7 @@ public class BalanceService : IBalanceService {
                 await context.SaveChangesAsync();
                 await transaction.CommitAsync();
             }else{
-                throw new InvalidOperationException("There are not enough funds.");
+                throw new InvalidOperationException(Messages.NotEnoughFunds);
             }
 
             return Mapper(balance);

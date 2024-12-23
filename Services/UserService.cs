@@ -1,3 +1,4 @@
+using Demir.Constants;
 using Demir.Data.Models;
 using Demir.Dtos;
 using Microsoft.EntityFrameworkCore;
@@ -30,7 +31,7 @@ public class UserService : IUserService
     {
         if (await GetUserByUsernameAsync(username) != null)
         {
-            throw new InvalidOperationException("A user with the same username already exists.");
+            throw new InvalidOperationException(Messages.UserAlreadyCreated);
         }
 
         User user = new User{
