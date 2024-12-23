@@ -1,4 +1,5 @@
-using Demir.Models;
+using Demir.Data.Models;
+using Demir.Dtos;
 using Microsoft.EntityFrameworkCore;
 
 namespace Demir.Services;
@@ -12,7 +13,7 @@ public class BalanceService : IBalanceService {
         this.context = context;
     }
 
-    public async Task<Balance> CreateBalanceAsync(User user, double? amount = null)
+    public async Task<BalanceDto> CreateBalanceAsync(UserDto user, double? amount = null)
     {
         if (await context.Balances.FirstOrDefaultAsync(b => b.UserId == user.Id) != null)
         {
@@ -25,15 +26,15 @@ public class BalanceService : IBalanceService {
 
         context.Balances.Add(balance);
         await context.SaveChangesAsync();
-        return balance;
+        return Mapper(balance);
     }
 
-    public async Task<Balance?> GetBalanceByUserIdAsync(string userId)
+    public async Task<BalanceDto?> GetBalanceByUserIdAsync(string userId)
     {
-        return await context.Balances.FirstOrDefaultAsync(b => b.UserId == userId);
+        return Mapper(await context.Balances.FirstOrDefaultAsync(b => b.UserId == userId));
     }
 
-    public async Task<Balance> PaymentAsync(User user, double? withdraw = null)
+    public async Task<BalanceDto> PaymentAsync(UserDto user, double? withdraw = null)
     {
         using var transaction = await context.Database.BeginTransactionAsync();
         try {
@@ -69,6 +70,14 @@ public class BalanceService : IBalanceService {
             throw;
         }
     }
+
+    private BalanceDto? Mapper(Balance? user) {
+        return user != null ? new BalanceDto {
+            Id = user!.Id,
+            Amount = user.Amount,
+            UserId = user.UserId,
+        } : null;
+    }
 }
 
 
@@ -77,7 +86,7 @@ public class BalanceService : IBalanceService {
 
 public interface IBalanceService
 {
-    Task<Balance> CreateBalanceAsync(User user, double? amount = null);
-    Task<Balance> PaymentAsync(User user, double? withdraw);
-    Task<Balance?> GetBalanceByUserIdAsync(string userId);
+    Task<BalanceDto> CreateBalanceAsync(UserDto user, double? amount = null);
+    Task<BalanceDto> PaymentAsync(UserDto user, double? withdraw);
+    Task<BalanceDto?> GetBalanceByUserIdAsync(string userId);
 }

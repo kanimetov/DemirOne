@@ -1,4 +1,4 @@
-using Demir.Models;
+using Demir.Data.Models;
 using Microsoft.EntityFrameworkCore;
 
 public class ApplicationDbContext : DbContext

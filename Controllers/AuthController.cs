@@ -1,5 +1,5 @@
+using Demir.Dtos;
 using Demir.Helpers;
-using Demir.Models;
 using Demir.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -28,13 +28,13 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register(Model model)
     {
-        User? user = await userService.GetUserByUsernameAsync(model.Username);
-        // Validate user credentials (this is just an example)
+        UserDto? user = await userService.GetUserByUsernameAsync(model.Username);
         if (user != null)
             return Conflict(new {message= "A user with this email already exists."});
+        
         var passwordHelper = new PasswordHelper();
         string passwordHash = passwordHelper.HashPassword(model.Password);
-        User createUser = await userService.CreateUserAsync(model.Username, passwordHash);
+        UserDto createUser = await userService.CreateUserAsync(model.Username, passwordHash);
 
         TokenResult result = GenerateJwtToken(configuration, createUser.Username, createUser.Id);
 
@@ -49,7 +49,7 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login(Model model)
     {
-        User? user = await userService.GetUserByUsernameAsync(model.Username);
+        UserDto? user = await userService.GetUserByUsernameAsync(model.Username);
 
         if (user == null) 
             return NotFound(new {message = "User not registered."});

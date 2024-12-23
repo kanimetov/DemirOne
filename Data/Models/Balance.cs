@@ -1,4 +1,4 @@
-namespace Demir.Models;
+namespace Demir.Data.Models;
 
 public class Balance
 {
