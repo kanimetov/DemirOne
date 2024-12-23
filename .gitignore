@@ -84,3 +84,7 @@ node_modules/
 
 # Log files
 *.log
+
+# Ignore SQLite database files
+*.db
+*.sqlite
