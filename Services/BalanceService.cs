@@ -1,5 +1,6 @@
 using Demir.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration.UserSecrets;
 
 namespace Demir.Services;
 
@@ -35,21 +36,39 @@ public class BalanceService : IBalanceService {
 
     public async Task<Balance> PaymentAsync(User user, double? withdraw = null)
     {
-        var balance = await GetBalanceByUserIdAsync(user.Id);
-        if (balance == null){
-            throw new InvalidOperationException("Balance not found.");
-        }
+        using var transaction = await context.Database.BeginTransactionAsync();
+        try {
+            var balance = await GetBalanceByUserIdAsync(user.Id);
+            if (balance == null){
+                throw new InvalidOperationException("Balance not found.");
+            }
+            var withdrawAmount = withdraw ?? DEFAULTWITHDRAWAMOUNT;
 
-        double difference = balance.Amount - (withdraw ?? DEFAULTWITHDRAWAMOUNT);
-        if(difference > 0) {
-            balance.Amount = Math.Round(difference, 1);
-            context.Balances.Update(balance);
-            await context.SaveChangesAsync();
-        }else{
-            throw new InvalidOperationException("There are not enough funds.");
-        }
+            double difference = balance.Amount - withdrawAmount;
+            var updatedProduct = new Balance {
+                Id = balance.Id,
+                UserId = balance.UserId
+            };
 
-        return balance;
+            if(difference > 0) {
+                updatedProduct.Amount = Math.Round(difference, 1);
+                context.Transactions.Add(new Transaction {
+                    UserId = user.Id,
+                    Withdraw = withdrawAmount,
+                });
+                context.Entry(balance).CurrentValues.SetValues(updatedProduct);
+                await context.SaveChangesAsync();
+                await transaction.CommitAsync();
+            }else{
+                throw new InvalidOperationException("There are not enough funds.");
+            }
+
+            return balance;
+        }
+        catch(Exception){
+            await transaction.RollbackAsync();
+            throw;
+        }
     }
 }
 

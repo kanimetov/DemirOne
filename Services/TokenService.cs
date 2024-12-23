@@ -25,7 +25,7 @@ public class TokenService : ITokenService
         }
         var newToken = new Token {
             UserId = userId,
-            userAgent = userAgent,
+            UserAgent = userAgent,
             Value = token
         };
         context.Tokens.Add(newToken);
@@ -40,7 +40,7 @@ public class TokenService : ITokenService
 
     public async Task<Token?> GetTokenByUserAgentAsync(string userAgent)
     {
-        return await context.Tokens.FirstOrDefaultAsync(b => b.userAgent == userAgent);
+        return await context.Tokens.FirstOrDefaultAsync(b => b.UserAgent == userAgent);
     }
 
     private string NormolizeToken(string token) {
