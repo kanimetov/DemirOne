@@ -1,6 +1,5 @@
 using Demir.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration.UserSecrets;
 
 namespace Demir.Services;
 
