@@ -17,26 +17,25 @@ public class BalanceService : IBalanceService {
 
     public async Task<BalanceDto> PaymentAsync(UserDto userDto, decimal? withdraw = null)
     {
-        using var transaction = await _context.Database.BeginTransactionAsync();
+        await using var transaction = await _context.Database.BeginTransactionAsync();
         try {
             var user = await _context.Users.Include(u => u.Balance).FirstAsync(b => b.Id == userDto.Id);
             var withdrawAmount = withdraw ?? DEFAULT_WITHDRAW_AMOUNT;
 
             decimal difference = user.Balance.Amount - withdrawAmount;
-            
-
             if(difference > 0) {
-                user.Balance.Amount = Math.Round(difference, 1);
-                
-                _context.Transactions.Add(new Transaction {
-                    BalanceId = user.Balance.Id,
-                    Withdraw = withdrawAmount,
-                });
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
-            }else{
                 throw new InvalidOperationException(Messages.NotEnoughFunds);
             }
+            
+
+            user.Balance.Amount = Math.Round(difference, 1);
+                
+            _context.Transactions.Add(new Transaction {
+                BalanceId = user.Balance.Id,
+                Withdraw = withdrawAmount,
+            });
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
 
             return MapBalancaToBalanceDto(user.Balance);
         }
