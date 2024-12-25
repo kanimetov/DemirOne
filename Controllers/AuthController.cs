@@ -58,7 +58,7 @@ public class AuthController : ControllerBase
             return NotFound(new {message = Messages.UserNotRegistered});
         
         if (user.LockoutEnd > DateTime.UtcNow)
-            return BadRequest($"Account is locked until {user.LockoutEnd} UTC.");
+            return BadRequest($"{Messages.AccountLocked} {user.LockoutEnd} UTC.");
 
         var passwordHelper = new PasswordHelper();
         if(!passwordHelper.VerifyPassword(user.PasswordHash, model.Password)) {
