@@ -1,72 +1,44 @@
 using Demir.Constants;
 using Demir.Data.Models;
 using Demir.Dtos;
+using Demir.Services.Contracts;
 using Microsoft.EntityFrameworkCore;
 
 namespace Demir.Services;
 
 public class BalanceService : IBalanceService {
-    const double DEFAULTWITHDRAWAMOUNT = 1.1;
-    private readonly ApplicationDbContext context;
+    private const decimal DEFAULT_WITHDRAW_AMOUNT = 1.1M;
+    private readonly ApplicationDbContext _context;
 
     public BalanceService(ApplicationDbContext context)
     {
-        this.context = context;
+        _context = context;
     }
 
-    public async Task<BalanceDto> CreateBalanceAsync(UserDto user, double? amount = null)
+    public async Task<BalanceDto> PaymentAsync(UserDto userDto, decimal? withdraw = null)
     {
-        if (await context.Balances.FirstOrDefaultAsync(b => b.UserId == user.Id) != null)
-        {
-            throw new InvalidOperationException("User already have a balance.");
-        }
-
-        Balance balance = new Balance {
-            UserId = user.Id,
-        };
-
-        context.Balances.Add(balance);
-        await context.SaveChangesAsync();
-        return Mapper(balance);
-    }
-
-    public async Task<BalanceDto?> GetBalanceByUserIdAsync(string userId)
-    {
-        return Mapper(await context.Balances.FirstOrDefaultAsync(b => b.UserId == userId));
-    }
-
-    public async Task<BalanceDto> PaymentAsync(UserDto user, double? withdraw = null)
-    {
-        using var transaction = await context.Database.BeginTransactionAsync();
+        using var transaction = await _context.Database.BeginTransactionAsync();
         try {
-            var balance = await context.Balances.FirstOrDefaultAsync(b => b.UserId == user.Id);
-            if (balance == null){
-                throw new InvalidOperationException("Balance not found.");
-            }
-            var withdrawAmount = withdraw ?? DEFAULTWITHDRAWAMOUNT;
+            var user = await _context.Users.Include(u => u.Balance).FirstAsync(b => b.Id == userDto.Id);
+            var withdrawAmount = withdraw ?? DEFAULT_WITHDRAW_AMOUNT;
 
-            double difference = balance.Amount - withdrawAmount;
+            decimal difference = user.Balance.Amount - withdrawAmount;
             
 
             if(difference > 0) {
-                var updatedProduct = new Balance {
-                    Id = balance.Id,
-                    UserId = balance.UserId,
-                    Amount = Math.Round(difference, 1)
-                };
+                user.Balance.Amount = Math.Round(difference, 1);
                 
-                context.Transactions.Add(new Transaction {
-                    UserId = user.Id,
+                _context.Transactions.Add(new Transaction {
+                    BalanceId = user.Balance.Id,
                     Withdraw = withdrawAmount,
                 });
-                context.Entry(balance).CurrentValues.SetValues(updatedProduct);
-                await context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
             }else{
                 throw new InvalidOperationException(Messages.NotEnoughFunds);
             }
 
-            return Mapper(balance);
+            return MapBalancaToBalanceDto(user.Balance);
         }
         catch(Exception){
             await transaction.RollbackAsync();
@@ -74,22 +46,11 @@ public class BalanceService : IBalanceService {
         }
     }
 
-    private BalanceDto? Mapper(Balance? balance) {
+    private BalanceDto? MapBalancaToBalanceDto(Balance? balance) {
         return balance != null ? new BalanceDto {
             Id = balance!.Id,
             Amount = balance.Amount,
             UserId = balance.UserId,
         } : null;
     }
-}
-
-
-
-
-
-public interface IBalanceService
-{
-    Task<BalanceDto> CreateBalanceAsync(UserDto user, double? amount = null);
-    Task<BalanceDto> PaymentAsync(UserDto user, double? withdraw);
-    Task<BalanceDto?> GetBalanceByUserIdAsync(string userId);
 }

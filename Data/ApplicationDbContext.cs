@@ -18,6 +18,10 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<User>()
         .Property(u => u.Id)
         .ValueGeneratedOnAdd();
+        modelBuilder.Entity<User>()
+        .HasOne(u => u.Balance)
+        .WithOne(u => u.User)
+        .HasForeignKey<Balance>(u => u.UserId);
 
         modelBuilder.Entity<Balance>()
         .Property(u => u.Id)
@@ -25,14 +29,16 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<Balance>()
         .Property(u => u.Amount)
         .HasDefaultValue(8);
-        modelBuilder.Entity<Balance>()
-        .HasOne(u => u.User)
-        .WithOne(u => u.Balance);
 
 
         modelBuilder.Entity<Transaction>()
         .Property(u => u.Id)
         .ValueGeneratedOnAdd();
+        modelBuilder.Entity<Transaction>()
+        .HasOne(u => u.Balance)
+        .WithMany(u => u.Transactions)
+        .HasForeignKey(u => u.BalanceId);
+
 
         modelBuilder.Entity<Token>()
         .Property(u => u.Id)

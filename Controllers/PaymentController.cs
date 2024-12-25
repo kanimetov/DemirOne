@@ -1,9 +1,9 @@
 using System.Security.Claims;
-using Demir.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Demir.Dtos;
 using Demir.Constants;
+using Demir.Services.Contracts;
 
 
 namespace Demir.Controllers;
@@ -11,35 +11,34 @@ namespace Demir.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("api")]
-public class BalanceController : ControllerBase{
-    private readonly IBalanceService balanceService;
-    private readonly IUserService userService;
+[Route("api/[controller]")]
+public class PaymentController : ControllerBase{
+    private readonly IBalanceService _balanceService;
+    private readonly IUserService _userService;
 
-    public BalanceController(IUserService userService, IBalanceService balanceService)
+    public PaymentController(IUserService userService, IBalanceService balanceService)
     {
-        this.balanceService = balanceService;
-        this.userService = userService;
+        _balanceService = balanceService;
+        _userService = userService;
     }
 
-    [HttpPost("payment")]
+    [HttpPost]
     public async Task<IActionResult> Payment(){
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         var username = User.FindFirst(ClaimTypes.Name)?.Value;
-
-        if (username == null || userId == null)
+        if (username == null || !int.TryParse(userIdString, out int userId))
         {
-            return BadRequest(new { message = Messages.InvalidUserInfo });
+            return BadRequest(Messages.InvalidUserInfo);
         }
 
-        UserDto? user = await userService.GetUserByIdAsync(userId);
+        UserDto? user = await _userService.GetUserByIdAsync(userId);
 
         if(user == null)
             return BadRequest(Messages.ContactSupport);
 
         
         try {
-            BalanceDto balance = await balanceService.PaymentAsync(user, null);
+            BalanceDto balance = await _balanceService.PaymentAsync(user, null);
 
             return Ok(new {
                 username,

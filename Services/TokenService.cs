@@ -1,47 +1,48 @@
 using Demir.Data.Models;
 using Demir.Dtos;
+using Demir.Services.Contracts;
 using Microsoft.EntityFrameworkCore;
 
 namespace Demir.Services;
 
 public class TokenService : ITokenService
 {
-    private readonly ApplicationDbContext context;
+    private readonly ApplicationDbContext _context;
 
     public TokenService(ApplicationDbContext context)
     {
-        this.context = context;
+        _context = context;
     }
 
-    public async Task<TokenDto> CreateTokenAsync(string userId, string token, string userAgent)
+    public async Task<TokenDto> CreateTokenAsync(int userId, string token, string userAgent)
     {
-        var existedToken = await context.Tokens.FirstOrDefaultAsync(b => b.UserAgent == userAgent);
+        var existedToken = await _context.Tokens.FirstOrDefaultAsync(b => b.UserAgent == userAgent);
         token = NormolizeToken(token);
 
         if(existedToken != null) {
             existedToken.Value = token;
-            context.Tokens.Update(existedToken);
-            await context.SaveChangesAsync();
-            return Mapper(existedToken);
+            _context.Tokens.Update(existedToken);
+            await _context.SaveChangesAsync();
+            return MapTokenToTokenDto(existedToken);
         }
         var newToken = new Token {
             UserId = userId,
             UserAgent = userAgent,
             Value = token
         };
-        context.Tokens.Add(newToken);
-        await context.SaveChangesAsync();
-        return Mapper(newToken);
+        _context.Tokens.Add(newToken);
+        await _context.SaveChangesAsync();
+        return MapTokenToTokenDto(newToken);
     }
 
     public bool IsTokenExist(string value)
     {
-        return context.Tokens.FirstOrDefault(b => b.Value == NormolizeToken(value)) != null;
+        return _context.Tokens.FirstOrDefault(b => b.Value == NormolizeToken(value)) != null;
     }
 
     public async Task<TokenDto?> GetTokenByUserAgentAsync(string userAgent)
     {
-        return Mapper(await context.Tokens.FirstOrDefaultAsync(b => b.UserAgent == userAgent));
+        return MapTokenToTokenDto(await _context.Tokens.FirstOrDefaultAsync(b => b.UserAgent == userAgent));
     }
 
     private string NormolizeToken(string token) {
@@ -51,7 +52,7 @@ public class TokenService : ITokenService
         return token;
     }
 
-    private TokenDto? Mapper(Token? token) {
+    private TokenDto? MapTokenToTokenDto(Token? token) {
         return token != null ? new TokenDto {
             Id = token!.Id,
             UserAgent = token.UserAgent,
@@ -59,12 +60,4 @@ public class TokenService : ITokenService
             UserId = token.UserId,
         } : null;
     }
-}
-
-
-public interface ITokenService
-{
-    bool IsTokenExist(string value);
-    Task<TokenDto?> GetTokenByUserAgentAsync(string userAgent);
-    Task<TokenDto> CreateTokenAsync(string userId, string token, string userAgent);
 }

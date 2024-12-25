@@ -4,6 +4,7 @@ using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Demir.Services;
 using Demir.Middlewares;
+using Demir.Services.Contracts;
 
 
 var builder = WebApplication.CreateBuilder(args);

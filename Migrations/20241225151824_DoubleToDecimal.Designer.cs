@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -9,9 +10,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Demir.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241225151824_DoubleToDecimal")]
+    partial class DoubleToDecimal
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.11");
@@ -68,7 +71,7 @@ namespace Demir.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("BalanceId")
+                    b.Property<int>("UserId")
                         .HasColumnType("INTEGER");
 
                     b.Property<decimal>("Withdraw")
@@ -76,7 +79,7 @@ namespace Demir.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BalanceId");
+                    b.HasIndex("UserId");
 
                     b.ToTable("Transactions");
                 });
@@ -130,18 +133,13 @@ namespace Demir.Migrations
 
             modelBuilder.Entity("Demir.Data.Models.Transaction", b =>
                 {
-                    b.HasOne("Demir.Data.Models.Balance", "Balance")
-                        .WithMany("Transactions")
-                        .HasForeignKey("BalanceId")
+                    b.HasOne("Demir.Data.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Balance");
-                });
-
-            modelBuilder.Entity("Demir.Data.Models.Balance", b =>
-                {
-                    b.Navigation("Transactions");
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Demir.Data.Models.User", b =>

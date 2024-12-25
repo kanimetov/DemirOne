@@ -1,6 +1,7 @@
 using Demir.Constants;
 using Demir.Data.Models;
 using Demir.Dtos;
+using Demir.Services.Contracts;
 using Microsoft.EntityFrameworkCore;
 namespace Demir.Services;
 
@@ -8,23 +9,23 @@ namespace Demir.Services;
 
 public class UserService : IUserService
 {
-    private readonly ApplicationDbContext context;
+    private readonly ApplicationDbContext _context;
 
     public UserService(ApplicationDbContext context)
     {
-        this.context = context;
+        _context = context;
     }
 
 
-    public async Task<UserDto?> GetUserByIdAsync(string id)
+    public async Task<UserDto?> GetUserByIdAsync(int id)
     {
-        var user = await context.Users.FindAsync(id);
+        var user = await _context.Users.FindAsync(id);
 
-        return Mapper(user);
+        return MapUserToUserDto(user);
     }
     public async Task<UserDto?> GetUserByUsernameAsync(string username)
     {
-        return Mapper(await context.Users.FirstOrDefaultAsync(u => u.Username == username));
+        return MapUserToUserDto(await _context.Users.FirstOrDefaultAsync(u => u.Username == username));
     }
 
     public async Task<UserDto> CreateUserAsync(string username, string passwordHash)
@@ -34,33 +35,36 @@ public class UserService : IUserService
             throw new InvalidOperationException(Messages.UserAlreadyCreated);
         }
 
-        User user = new User{
-            Username = username,
-            PasswordHash = passwordHash
-        };
+        try {
+            var user = new User{
+                Username = username,
+                PasswordHash = passwordHash,
+                Balance = new Balance()
+            };
 
-        context.Users.Add(user);
-        context.Balances.Add(new Balance{
-            UserId = user.Id
-        });
-        await context.SaveChangesAsync();
-        return Mapper(user);
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+            return MapUserToUserDto(user);
+        }
+        catch(Exception){
+            throw new InvalidOperationException(Messages.ContactSupport);
+        }
     }
 
     public async Task<bool> UpdateUserAsync(UserDto user)
     {
-        var existingUser = await context.Users.FindAsync(user.Id);
+        var existingUser = await _context.Users.FindAsync(user.Id);
         if (existingUser == null) return false;
 
         existingUser.LockoutEnd = user.LockoutEnd;
         existingUser.FailedLoginAttempts = user.FailedLoginAttempts;
 
-        context.Users.Update(existingUser);
-        await context.SaveChangesAsync();
+        _context.Users.Update(existingUser);
+        await _context.SaveChangesAsync();
         return true;
     }
 
-    private UserDto? Mapper(User? user) {
+    private UserDto? MapUserToUserDto(User? user) {
         return user != null ? new UserDto {
             Id = user!.Id,
             Username = user.Username,
@@ -69,13 +73,4 @@ public class UserService : IUserService
             LockoutEnd = user.LockoutEnd,
         } : null;
     }
-}
-
-
-public interface IUserService
-{
-    Task<UserDto?> GetUserByIdAsync(string id);
-    Task<UserDto?> GetUserByUsernameAsync(string username);
-    Task<UserDto> CreateUserAsync(string username, string passwordHash);
-    Task<bool> UpdateUserAsync(UserDto user);
 }
