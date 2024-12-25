@@ -11,6 +11,7 @@ public static class Messages
     public const string Logout = "Logged out successfully.";
     public const string UserAlreadyCreated = "A user with this username already exists.";
     public const string LockedAccount = "Account is locked until ";
+    public const string InvalidToken = "Token is invalid.";
 
     public const string NotEnoughFunds = "There are not enough funds.";
     public const string PaymentSuccess = "Payment processed successfully.";

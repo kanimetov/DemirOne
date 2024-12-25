@@ -35,7 +35,9 @@ public class PaymentController : ControllerBase{
 
         if(user == null)
             return BadRequest(Messages.ContactSupport);
-
+        
+        if (user.LockoutEnd > DateTime.UtcNow)
+            return BadRequest($"{Messages.AccountLocked} {user.LockoutEnd} UTC.");
         
         try {
             BalanceDto balance = await _balanceService.PaymentAsync(user, null);

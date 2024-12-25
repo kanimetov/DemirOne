@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Demir.Services;
 using Demir.Middlewares;
 using Demir.Services.Contracts;
+using Demir.Constants;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -79,7 +80,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 
                 if (isTokenBlocked)
                 {
-                    context.Fail("Token is invalid.");
+                    context.Fail(Messages.InvalidToken);
                 }
 
                 return Task.CompletedTask;
