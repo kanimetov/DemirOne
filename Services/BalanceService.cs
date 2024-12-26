@@ -23,7 +23,7 @@ public class BalanceService : IBalanceService {
             var withdrawAmount = withdraw ?? DEFAULT_WITHDRAW_AMOUNT;
 
             decimal difference = user.Balance.Amount - withdrawAmount;
-            if(difference > 0) {
+            if(difference < 0) {
                 throw new InvalidOperationException(Messages.NotEnoughFunds);
             }
             
